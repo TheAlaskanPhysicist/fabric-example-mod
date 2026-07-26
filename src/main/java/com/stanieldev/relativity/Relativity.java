@@ -1,5 +1,6 @@
 package com.stanieldev.relativity;
 
+import com.stanieldev.relativity.history.EntityHistory;
 import com.stanieldev.relativity.history.HistoryManager;
 import net.fabricmc.api.ModInitializer;
 
@@ -19,12 +20,25 @@ public class Relativity implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
-
 			long tick = server.getTickCount();
-
 			for (var level : server.getAllLevels()) {
 				for (var entity : level.getAllEntities()) {
 					HistoryManager.record(entity, tick);
+				}
+			}
+
+			if (tick % 100 == 0) {
+				System.out.println("Tracked entities: " + HistoryManager.getEntityCount());
+				for (var player : server.getPlayerList().getPlayers()) {
+					EntityHistory history = HistoryManager.getHistory(player.getUUID());
+					if (history != null) {
+						System.out.println("Snapshots: " + history.getSnapshots().size());
+						var snapshots = history.getSnapshots();
+						if (!snapshots.isEmpty()) {
+							System.out.println("Oldest: " + snapshots.get(0).getPosition());
+							System.out.println("Newest: " + snapshots.get(snapshots.size() - 1).getPosition());
+						}
+					}
 				}
 			}
 

@@ -29,4 +29,14 @@ public class HistoryManager {
     public static int getEntityCount() {
         return histories.size();
     }
+
+    public static int getSnapshotCount(UUID uuid) {
+        EntityHistory history = histories.get(uuid);
+
+        if (history == null) {
+            return 0;
+        }
+
+        return history.getSnapshots().size();
+    }
 }

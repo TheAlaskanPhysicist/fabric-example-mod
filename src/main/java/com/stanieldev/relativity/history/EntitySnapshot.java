@@ -20,4 +20,9 @@ public class EntitySnapshot {
     public Vec3 getPosition() {
         return position;
     }
+
+    @Override
+    public String toString() {
+        return "Tick " + tick + " Pos " + position;
+    }
 }
