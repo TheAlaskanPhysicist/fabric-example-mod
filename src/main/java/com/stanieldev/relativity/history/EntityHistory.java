@@ -8,7 +8,7 @@ import static com.stanieldev.relativity.config.RelativityConfig.MAX_SNAPSHOT_COU
 
 public class EntityHistory {
 
-    // Entity was last recorded by the client
+    // Entity last recorded tick
     private long lastRecordedTick;
     public synchronized long getLastRecordedTick() { return lastRecordedTick; }
 

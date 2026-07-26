@@ -1,9 +1,10 @@
 package com.stanieldev.relativity.client.render;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.stanieldev.relativity.history.EntityHistory;
 import com.stanieldev.relativity.history.EntitySnapshot;
 import com.stanieldev.relativity.history.EntityHistoryManager;
+
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -14,7 +15,6 @@ public class PositionTrajectoryRenderer {
     public static void render(PoseStack poseStack, MultiBufferSource bufferSource) {
         Minecraft minecraft = Minecraft.getInstance();
         Vec3 camera = minecraft.gameRenderer.getMainCamera().getPosition();
-
         for (EntityHistory history : EntityHistoryManager.getEntityHistories()) {
             for (EntitySnapshot snapshot : history.getSnapshotHistory()) {
                 Vec3 pos = snapshot.position().subtract(camera);
