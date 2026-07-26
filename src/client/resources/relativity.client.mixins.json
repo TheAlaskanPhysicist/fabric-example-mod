@@ -3,7 +3,8 @@
 	"package": "com.stanieldev.relativity.client.mixin",
 	"compatibilityLevel": "JAVA_17",
 	"client": [
-		"ExampleClientMixin"
+		"EntityRendererMixin",
+		"LivingEntityRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -6,7 +6,14 @@ public record EntitySnapshot(
         // TODO: Add more data like rotation, velocity, pose, animation, equipment, etc.
         long tick,
         Vec3 position,
-        Vec3 velocity
+        Vec3 velocity,
+        float yaw,
+        float pitch,
+        float headYaw,
+        float bodyYaw,
+        float limbSwing,
+        float limbSwingAmount,
+        int age
 ) {
     // Displacement helpers
 
