@@ -2,9 +2,7 @@ package com.stanieldev.relativity.history;
 
 import net.minecraft.world.entity.Entity;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class HistoryManager {
 
@@ -42,5 +40,9 @@ public class HistoryManager {
 
     public static Map<UUID, EntityHistory> getAllHistories() {
         return histories;
+    }
+
+    public static Collection<EntityHistory> getAllHistoriesCopy() {
+        return new ArrayList<>(histories.values());
     }
 }

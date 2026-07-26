@@ -28,30 +28,27 @@ public class PositionTrajectoryRenderer {
 
     public static void render(PoseStack poseStack, MultiBufferSource bufferSource) {
         Minecraft minecraft = Minecraft.getInstance();
-        Player player = minecraft.player;
-        if (player == null) { return; }
-
-        EntityHistory history =  HistoryManager.getHistory(player.getUUID());
-        if (history == null) { return; }
-
         Vec3 camera = minecraft.gameRenderer.getMainCamera().getPosition();
-        for (EntitySnapshot snapshot : history.getSnapshots()) {
-            Vec3 pos = snapshot.getPosition().subtract(camera);
-            float size = 0.1f;
-            LevelRenderer.renderLineBox(
-                    poseStack,
-                    bufferSource.getBuffer(net.minecraft.client.renderer.RenderType.lines()),
-                    pos.x - size,
-                    pos.y - size,
-                    pos.z - size,
-                    pos.x + size,
-                    pos.y + size,
-                    pos.z + size,
-                    1.0f, // red
-                    1.0f, // green
-                    1.0f, // blue
-                    1.0f  // alpha
-            );
+
+        for (EntityHistory history : HistoryManager.getAllHistoriesCopy()) {
+            for (EntitySnapshot snapshot : history.getSnapshots()) {
+                Vec3 pos = snapshot.getPosition().subtract(camera);
+                float size = 0.1f;
+                LevelRenderer.renderLineBox(
+                        poseStack,
+                        bufferSource.getBuffer(net.minecraft.client.renderer.RenderType.lines()),
+                        pos.x - size,
+                        pos.y - size,
+                        pos.z - size,
+                        pos.x + size,
+                        pos.y + size,
+                        pos.z + size,
+                        1.0f, // red
+                        1.0f, // green
+                        1.0f, // blue
+                        1.0f  // alpha
+                );
+            }
         }
     }
 }

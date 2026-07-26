@@ -2,6 +2,8 @@ package com.stanieldev.relativity.history;
 
 import net.minecraft.world.phys.Vec3;
 
+import java.util.Objects;
+
 public class EntitySnapshot {
     // TODO: Add more data like rotation, velocity, pose, animation, equipment, etc.
 
@@ -10,7 +12,7 @@ public class EntitySnapshot {
 
     public EntitySnapshot(long tick, Vec3 position) {
         this.tick = tick;
-        this.position = position;
+        this.position = Objects.requireNonNull(position);
     }
 
     public long getTick() {
