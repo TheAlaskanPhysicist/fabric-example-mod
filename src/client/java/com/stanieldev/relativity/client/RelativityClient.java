@@ -2,8 +2,10 @@ package com.stanieldev.relativity.client;
 
 import com.stanieldev.relativity.client.debug.DebugState;
 import com.stanieldev.relativity.client.render.PositionTrajectoryRenderer;
+import com.stanieldev.relativity.history.EntityHistory;
 import com.stanieldev.relativity.history.EntityHistoryManager;
 
+import com.stanieldev.relativity.history.EntitySnapshot;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -85,7 +87,4 @@ public class RelativityClient implements ClientModInitializer {
 			}
 		});
 	}
-
-
-
 }

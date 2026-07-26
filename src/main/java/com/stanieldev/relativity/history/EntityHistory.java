@@ -2,6 +2,7 @@ package com.stanieldev.relativity.history;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.stanieldev.relativity.config.RelativityConfig.MAX_SNAPSHOT_COUNT;
@@ -13,6 +14,7 @@ public class EntityHistory {
     public synchronized long getLastRecordedTick() { return lastRecordedTick; }
 
     // Entity snapshot storage
+    // Todo: Change to a cyclic list for more optimization
     private final Deque<EntitySnapshot> snapshots = new ArrayDeque<>();
     public synchronized void add(EntitySnapshot snapshot) {
         snapshots.addLast(snapshot);
@@ -25,5 +27,15 @@ public class EntityHistory {
     public synchronized boolean isEmpty() { return snapshots.isEmpty(); }
     public synchronized EntitySnapshot getLastSnapshot() { return snapshots.peekLast(); }
     public synchronized EntitySnapshot getOldestSnapshot() { return snapshots.peekFirst(); }
+    public synchronized EntitySnapshot getTicksAgo(int ticks) {
+        if (ticks < 0 || ticks >= snapshots.size()) {
+            return null;
+        }
+        Iterator<EntitySnapshot> iterator = snapshots.descendingIterator();
+        for (int i = 0; i < ticks; i++) {
+            iterator.next();
+        }
+        return iterator.next();
+    }
     public synchronized List<EntitySnapshot> getSnapshotHistory() { return List.copyOf(snapshots); }
 }
