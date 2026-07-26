@@ -18,21 +18,22 @@ public class Relativity implements ModInitializer {
 	@Override
 	public void onInitialize() {
 
-		// Entity history storage thread
-		ServerTickEvents.END_SERVER_TICK.register(server -> {
-			// long tick = server.getTickCount();
-			long tick = server.overworld().getGameTime();
-			for (var level : server.getAllLevels()) {
-				for (var entity : level.getAllEntities()) {
-					EntityHistoryManager.record(entity, tick);
-				}
-			}
-			if (tick % PRUNE_FREQUENCY == 0) {
-				int current_count = EntityHistoryManager.getEntityCount();
-				EntityHistoryManager.prune(tick);
-				LOGGER.info("Relativity Entity Pruner: " + current_count + " -> " + EntityHistoryManager.getEntityCount());
-			}
-		});
+		// Todo: Move this to a dedicated server version.
+//		// Entity history storage thread
+//		ServerTickEvents.END_SERVER_TICK.register(server -> {
+//			// long tick = server.getTickCount();
+//			long tick = server.overworld().getGameTime();
+//			for (var level : server.getAllLevels()) {
+//				for (var entity : level.getAllEntities()) {
+//					EntityHistoryManager.record(entity, tick);
+//				}
+//			}
+//			if (tick % PRUNE_FREQUENCY == 0) {
+//				int current_count = EntityHistoryManager.getEntityCount();
+//				EntityHistoryManager.prune(tick);
+//				LOGGER.info("Relativity Entity Pruner: " + current_count + " -> " + EntityHistoryManager.getEntityCount());
+//			}
+//		});
 		LOGGER.info("Relativity initialization loaded!");
 	}
 

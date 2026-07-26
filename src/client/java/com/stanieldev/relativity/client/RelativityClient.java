@@ -5,6 +5,7 @@ import com.stanieldev.relativity.history.EntityHistoryManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -12,6 +13,8 @@ import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.stanieldev.relativity.client.render.PositionTrajectoryRenderer;
+
+import static com.stanieldev.relativity.config.RelativityConfig.PRUNE_FREQUENCY;
 
 public class RelativityClient implements ClientModInitializer {
 	public static final String MOD_ID = "relativity";
@@ -58,15 +61,19 @@ public class RelativityClient implements ClientModInitializer {
 
 		// History Tracking
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
-			Minecraft minecraft = Minecraft.getInstance();
-			if (minecraft.level == null) {
-				return;
-			}
-			long tick = minecraft.level.getGameTime();
-			for (var entity : minecraft.level.entitiesForRendering()) {
+			if (client.level == null) { return; }
+			long tick = client.level.getGameTime();
+
+			for (var entity : client.level.entitiesForRendering()) {
 				EntityHistoryManager.record(entity, tick);
 			}
+			if (tick % PRUNE_FREQUENCY == 0) {
+				int current_count = EntityHistoryManager.getEntityCount();
+				EntityHistoryManager.prune(tick);
+				LOGGER.info("Relativity Entity Pruner: " + current_count + " -> " + EntityHistoryManager.getEntityCount());
+			}
 		});
+
 		LOGGER.info("Relativity client initialization loaded!");
 	}
 }
