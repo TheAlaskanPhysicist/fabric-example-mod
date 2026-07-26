@@ -39,4 +39,8 @@ public class HistoryManager {
 
         return history.getSnapshots().size();
     }
+
+    public static Map<UUID, EntityHistory> getAllHistories() {
+        return histories;
+    }
 }
