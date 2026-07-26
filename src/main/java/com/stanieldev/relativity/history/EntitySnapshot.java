@@ -2,29 +2,15 @@ package com.stanieldev.relativity.history;
 
 import net.minecraft.world.phys.Vec3;
 
-import java.util.Objects;
+public record EntitySnapshot(
+        // TODO: Add more data like rotation, velocity, pose, animation, equipment, etc.
+        long tick,
+        Vec3 position,
+        Vec3 velocity
+) {
+    // Displacement helpers
 
-public class EntitySnapshot {
-    // TODO: Add more data like rotation, velocity, pose, animation, equipment, etc.
-
-    private final long tick;
-    private final Vec3 position;
-
-    public EntitySnapshot(long tick, Vec3 position) {
-        this.tick = tick;
-        this.position = Objects.requireNonNull(position);
-    }
-
-    public long getTick() {
-        return tick;
-    }
-
-    public Vec3 getPosition() {
-        return position;
-    }
-
-    @Override
-    public String toString() {
-        return "Tick " + tick + " Pos " + position;
-    }
+    // Velocity helpers
+    public double speed() { return velocity.length(); }
+    public boolean isMoving() { return !velocity.equals(Vec3.ZERO); }
 }

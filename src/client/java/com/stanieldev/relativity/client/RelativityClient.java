@@ -1,7 +1,7 @@
 package com.stanieldev.relativity.client;
 
 import com.stanieldev.relativity.client.debug.DebugState;
-import com.stanieldev.relativity.history.HistoryManager;
+import com.stanieldev.relativity.history.EntityHistoryManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -64,7 +64,7 @@ public class RelativityClient implements ClientModInitializer {
 			}
 			long tick = minecraft.level.getGameTime();
 			for (var entity : minecraft.level.entitiesForRendering()) {
-				HistoryManager.record(entity, tick);
+				EntityHistoryManager.record(entity, tick);
 			}
 		});
 		LOGGER.info("Relativity client initialization loaded!");

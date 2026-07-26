@@ -4,24 +4,26 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
-public class EntityHistory {
-    private static final int MAX_SIZE = 200;
-    private final Deque<EntitySnapshot> snapshots = new ArrayDeque<>();
+import static com.stanieldev.relativity.config.RelativityConfig.MAX_SNAPSHOT_COUNT;
 
+public class EntityHistory {
+
+    // Entity was last recorded by the client
+    private long lastRecordedTick;
+    public synchronized long getLastRecordedTick() { return lastRecordedTick; }
+
+    // Entity snapshot storage
+    private final Deque<EntitySnapshot> snapshots = new ArrayDeque<>();
     public synchronized void add(EntitySnapshot snapshot) {
         snapshots.addLast(snapshot);
-        while (snapshots.size() > MAX_SIZE) {
+        lastRecordedTick = snapshot.tick();
+        while (snapshots.size() > MAX_SNAPSHOT_COUNT) {
             snapshots.removeFirst();
         }
     }
-
-    public synchronized List<EntitySnapshot> getSnapshots() {
-
-        // Try to force concurrency crash if possible
-        // Note: This makes you game "lag" heavily
-        // try { Thread.sleep(5); }
-        // catch (InterruptedException ignored) {}
-
-        return List.copyOf(snapshots);
-    }
+    public synchronized int size() { return snapshots.size(); }
+    public synchronized boolean isEmpty() { return snapshots.isEmpty(); }
+    public synchronized EntitySnapshot getLastSnapshot() { return snapshots.peekLast(); }
+    public synchronized EntitySnapshot getOldestSnapshot() { return snapshots.peekFirst(); }
+    public synchronized List<EntitySnapshot> getSnapshotHistory() { return List.copyOf(snapshots); }
 }
