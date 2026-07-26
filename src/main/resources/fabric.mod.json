@@ -16,10 +16,10 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.stanieldev.relativity.ExampleMod"
+			"com.stanieldev.relativity.Relativity"
 		],
 		"client": [
-			"com.stanieldev.relativity.client.ExampleModClient"
+			"com.stanieldev.relativity.client.RelativityClient"
 		]
 	},
 	"mixins": [
