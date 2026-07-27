@@ -4,86 +4,145 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.stanieldev.relativity.history.EntityHistory;
 import com.stanieldev.relativity.history.EntityHistoryManager;
 import com.stanieldev.relativity.history.EntitySnapshot;
-import com.stanieldev.relativity.mixin.LivingEntityAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(EntityRenderDispatcher.class)
-public class DelayedEntityRenderMixin {
-    private static boolean renderingDelayed = false;
+import static com.stanieldev.relativity.config.RelativityConfig.SPEED_OF_LIGHT;
 
-    @Inject(method = "render", at = @At("HEAD"))
-    private <E extends Entity> void relativity$renderDelayed(
-            E entity,
-            double x,
-            double y,
-            double z,
-            float yaw,
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+@Mixin(LevelRenderer.class)
+public class DelayedEntityRenderMixin {
+
+    private static boolean renderingDelayed = false;
+    private static final Map<UUID, Entity> fakeEntities = new HashMap<>();
+    private static final Map<UUID, Boolean> initialized = new HashMap<>();
+
+    private static Entity getFake(Entity entity) {
+        return fakeEntities.computeIfAbsent(
+                entity.getUUID(),
+                id -> entity.getType().create(Minecraft.getInstance().level)
+        );
+    }
+
+    @Inject(
+            method = "renderEntity",
+            at = @At("TAIL")
+    )
+    private void relativity$renderDelayed(
+            Entity entity,
+            double cameraX,
+            double cameraY,
+            double cameraZ,
             float tickDelta,
             PoseStack poseStack,
             MultiBufferSource buffer,
-            int light,
             CallbackInfo ci
     ) {
-        if (renderingDelayed) { return; }
+        if (renderingDelayed) return;
 
-        EntityHistory history = EntityHistoryManager.getEntityHistory(entity.getUUID());
-        if (history == null) { return; }
+        EntityHistory history =
+                EntityHistoryManager.getEntityHistory(entity.getUUID());
 
-        EntitySnapshot older = history.getTicksAgo(21);
-        EntitySnapshot newer = history.getTicksAgo(20);
+        if (history == null) return;
 
-        if (older == null || newer == null) { return; }
+        double distance = entity.distanceTo(Minecraft.getInstance().player);
+        int ticksAgo = (int)(distance / SPEED_OF_LIGHT);
 
-        Entity copy = entity.getType().create(Minecraft.getInstance().level);
-        if (copy == null) { return; }
+
+        EntitySnapshot older = history.getTicksAgo(ticksAgo + 1);
+        EntitySnapshot newer = history.getTicksAgo(ticksAgo);
+
+        if (older == null || newer == null) return;
+
+        Entity copy = getFake(entity);
+
+        if (copy == null) return;
+
+        if (!initialized.containsKey(entity.getUUID())) {
+            copy.load(newer.nbt());
+            initialized.put(entity.getUUID(), true);
+        }
+
+        if (copy == null) return;
 
         copy.load(newer.nbt());
-        Vec3 position = older.position().lerp(newer.position(), tickDelta);
 
-        float delayedYaw = newer.nbt().getFloat("RelativityYaw");
-        float delayedPitch = newer.nbt().getFloat("RelativityPitch");
 
-        copy.setPos(
-                position.x,
-                position.y,
-                position.z
+        Vec3 pos = older.position().lerp(
+                newer.position(),
+                tickDelta
         );
 
-        copy.xOld = older.position().x;
-        copy.yOld = older.position().y;
-        copy.zOld = older.position().z;
+        float yaw = Mth.rotLerp(
+                tickDelta,
+                older.nbt().getFloat("RelativityYaw"),
+                newer.nbt().getFloat("RelativityYaw")
+        );
 
-        copy.setYRot(delayedYaw);
-        copy.setXRot(delayedPitch);
+        float pitch = Mth.lerp(
+                tickDelta,
+                older.nbt().getFloat("RelativityPitch"),
+                newer.nbt().getFloat("RelativityPitch")
+        );
+
+        copy.setPos(
+                pos.x,
+                pos.y,
+                pos.z
+        );
+
+        copy.setYRot(yaw);
+        copy.setXRot(pitch);
+
+        copy.yRotO = yaw;
+        copy.xRotO = pitch;
+
+        copy.xOld = pos.x;
+        copy.yOld = pos.y;
+        copy.zOld = pos.z;
+
 
         if (copy instanceof LivingEntity living) {
-            living.setYHeadRot(newer.nbt().getFloat("RelativityHeadYaw"));
-            living.yHeadRotO = living.getYHeadRot();
+            float headYaw = Mth.rotLerp(
+                    tickDelta,
+                    older.nbt().getFloat("RelativityHeadYaw"),
+                    newer.nbt().getFloat("RelativityHeadYaw")
+            );
+
+            living.setYHeadRot(headYaw);
+            living.yHeadRotO = headYaw;
+
             if (living instanceof Mob mob) {
-                mob.yBodyRot = newer.nbt().getFloat("RelativityBodyYaw");
-                mob.yBodyRotO = mob.yBodyRot;
+                float bodyYaw = Mth.rotLerp(
+                        tickDelta,
+                        older.nbt().getFloat("RelativityBodyYaw"),
+                        newer.nbt().getFloat("RelativityBodyYaw")
+                );
+
+                mob.yBodyRot = bodyYaw;
+                mob.yBodyRotO = bodyYaw;
             }
         }
 
-
-        copy.yRotO = delayedYaw;
-        copy.xRotO = delayedPitch;
-
-        Vec3 camera = Minecraft.getInstance()
-                .gameRenderer
-                .getMainCamera()
-                .getPosition();
+        Vec3 camera =
+                Minecraft.getInstance()
+                        .gameRenderer
+                        .getMainCamera()
+                        .getPosition();
 
         renderingDelayed = true;
 
@@ -92,17 +151,22 @@ public class DelayedEntityRenderMixin {
                     .getEntityRenderDispatcher()
                     .render(
                             copy,
-                            position.x - camera.x,
-                            position.y - camera.y,
-                            position.z - camera.z,
-                            delayedYaw,
-                            0.0F,
+                            pos.x - camera.x,
+                            pos.y - camera.y,
+                            pos.z - camera.z,
+                            yaw,
+                            tickDelta,
                             poseStack,
                             buffer,
-                            light
+                            15728880
                     );
         } finally {
             renderingDelayed = false;
         }
+
+
+
+
+
     }
 }
