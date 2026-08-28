@@ -12,5 +12,6 @@ public record EntitySnapshot(
         float yBodyRot,
         float limbPos,
         float limbSpeed,
+        int deathTime,
         CompoundTag nbt
 ) {}

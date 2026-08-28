@@ -10,7 +10,8 @@ public record RenderState(
         float yHeadRot,
         float yBodyRot,
         float limbPos,
-        float limbSpeed
+        float limbSpeed,
+        int deathTime
 ) {
     public static RenderState fromSnapshot(EntitySnapshot s) {
         return new RenderState(
@@ -20,7 +21,8 @@ public record RenderState(
                 s.yHeadRot(),
                 s.yBodyRot(),
                 s.limbPos(),
-                s.limbSpeed()
+                s.limbSpeed(),
+                s.deathTime()
         );
     }
 
@@ -32,7 +34,7 @@ public record RenderState(
         float yBodyRot = Mth.rotLerp(alpha, a.yBodyRot(), b.yBodyRot());
         float limbPos = Mth.lerp(alpha, a.limbPos(), b.limbPos());
         float limbSpeed = Mth.lerp(alpha, a.limbSpeed(), b.limbSpeed());
-
-        return new RenderState(pos, yRot, xRot, yHeadRot, yBodyRot, limbPos, limbSpeed);
+        int deathTime = (int) Mth.lerp(alpha, a.deathTime(), b.deathTime());
+        return new RenderState(pos, yRot, xRot, yHeadRot, yBodyRot, limbPos, limbSpeed, deathTime);
     }
 }

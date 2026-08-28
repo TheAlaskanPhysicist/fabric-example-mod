@@ -22,12 +22,14 @@ public class EntityHistoryManager {
         float yBodyRot = yRot;
         float limbPos = 0.0f;
         float limbSpeed = 0.0f;
+        int deathTime = 0;
 
         if (entity instanceof LivingEntity living) {
             yHeadRot = living.getYHeadRot();
             yBodyRot = living.yBodyRot;
             limbPos = living.walkAnimation.position();
             limbSpeed = living.walkAnimation.speed();
+            deathTime = living.deathTime;
         }
 
         CompoundTag tag = new CompoundTag();
@@ -42,6 +44,7 @@ public class EntityHistoryManager {
                 yBodyRot,
                 limbPos,
                 limbSpeed,
+                deathTime,
                 tag
         ));
     }

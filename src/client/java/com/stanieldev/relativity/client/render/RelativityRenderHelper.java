@@ -16,6 +16,7 @@ public class RelativityRenderHelper {
         public Vec3 delayedPos;
         public float yRot, xRot;
         public float yHeadRot, yBodyRot;
+        public int deathTime;
     }
 
     public static SavedEntityState applyDelayedState(Entity entity, float partialTick) {
@@ -28,7 +29,6 @@ public class RelativityRenderHelper {
         Vec3 cameraPos = mc.gameRenderer.getMainCamera().getPosition();
         double currentTick = mc.level.getGameTime() + partialTick;
 
-        // Solve light-cone intersection (t_ret)
         double targetTick = history.solveRetardedTime(currentTick, cameraPos);
         RenderState state = history.getInterpolatedState(targetTick);
         if (state == null) return null;
@@ -45,9 +45,9 @@ public class RelativityRenderHelper {
         if (entity instanceof LivingEntity living) {
             saved.yHeadRot = living.getYHeadRot();
             saved.yBodyRot = living.yBodyRot;
+            saved.deathTime = living.deathTime; // Save current real-time deathTime
         }
 
-        // Apply historical head/body rotations
         entity.setYRot(state.yRot());
         entity.setXRot(state.xRot());
         entity.yRotO = state.yRot();
@@ -59,7 +59,9 @@ public class RelativityRenderHelper {
             living.yBodyRot = state.yBodyRot();
             living.yBodyRotO = state.yBodyRot();
 
-            // Store historical limb animation parameters into context
+            // Override with historical deathTime so the mob stays upright until t_ret reaches death
+            living.deathTime = state.deathTime();
+
             RelativityModelContext.set(state.limbPos(), state.limbSpeed());
         }
 
@@ -76,6 +78,7 @@ public class RelativityRenderHelper {
         if (entity instanceof LivingEntity living) {
             living.yHeadRot = saved.yHeadRot;
             living.yBodyRot = saved.yBodyRot;
+            living.deathTime = saved.deathTime; // Restore real-time deathTime
         }
     }
 }
