@@ -7,6 +7,7 @@ import com.stanieldev.relativity.history.EntitySnapshot;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.OutlineBufferSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -37,6 +38,49 @@ public class DelayedEntityRenderMixin {
                 id -> entity.getType().create(Minecraft.getInstance().level)
         );
     }
+    private static final Map<UUID, Boolean> oldInvisible = new HashMap<>();
+
+    @Inject(
+            method = "renderEntity",
+            at = @At("HEAD")
+    )
+    private void relativity$hideRealEntity(
+            Entity entity,
+            double cameraX,
+            double cameraY,
+            double cameraZ,
+            float tickDelta,
+            PoseStack poseStack,
+            MultiBufferSource buffer,
+            CallbackInfo ci
+    ) {
+        if (renderingDelayed) return;
+
+//        oldInvisible.put(entity.getUUID(), entity.isInvisible());
+//
+//        entity.setInvisible(true);
+    }
+
+    @Inject(
+            method = "renderEntity",
+            at = @At("RETURN")
+    )
+    private void relativity$restoreRealEntity(
+            Entity entity,
+            double cameraX,
+            double cameraY,
+            double cameraZ,
+            float tickDelta,
+            PoseStack poseStack,
+            MultiBufferSource buffer,
+            CallbackInfo ci
+    ) {
+        if (renderingDelayed) return;
+
+//        entity.setInvisible(oldInvisible.getOrDefault(entity.getUUID(), false));
+    }
+
+
 
     @Inject(
             method = "renderEntity",
@@ -54,14 +98,12 @@ public class DelayedEntityRenderMixin {
     ) {
         if (renderingDelayed) return;
 
-        EntityHistory history =
-                EntityHistoryManager.getEntityHistory(entity.getUUID());
+        EntityHistory history = EntityHistoryManager.getEntityHistory(entity.getUUID());
 
         if (history == null) return;
 
         double distance = entity.distanceTo(Minecraft.getInstance().player);
         int ticksAgo = (int)(distance / SPEED_OF_LIGHT);
-
 
         EntitySnapshot older = history.getTicksAgo(ticksAgo + 1);
         EntitySnapshot newer = history.getTicksAgo(ticksAgo);
@@ -76,8 +118,6 @@ public class DelayedEntityRenderMixin {
             copy.load(newer.nbt());
             initialized.put(entity.getUUID(), true);
         }
-
-        if (copy == null) return;
 
         copy.load(newer.nbt());
 

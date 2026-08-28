@@ -1,6 +1,7 @@
 package com.stanieldev.relativity.client;
 
 import com.stanieldev.relativity.client.debug.DebugState;
+import com.stanieldev.relativity.client.debug.RelativityDebugHUD;
 import com.stanieldev.relativity.client.render.PositionTrajectoryRenderer;
 import com.stanieldev.relativity.history.EntityHistory;
 import com.stanieldev.relativity.history.EntityHistoryManager;
@@ -32,6 +33,7 @@ public class RelativityClient implements ClientModInitializer {
 
 		// History Tracking
 		initializeHistoryTracker();
+		RelativityDebugHUD.register();
 
 		LOGGER.info("Relativity client initialization loaded!");
 	}
@@ -77,9 +79,11 @@ public class RelativityClient implements ClientModInitializer {
 			if (client.level == null) { return; }
 			long tick = client.level.getGameTime();
 
+			// Iterates through all currently active client entities
 			for (var entity : client.level.entitiesForRendering()) {
 				EntityHistoryManager.record(entity, tick);
 			}
+
 			if (tick % PRUNE_FREQUENCY == 0) {
 				int current_count = EntityHistoryManager.getEntityCount();
 				EntityHistoryManager.prune(tick);

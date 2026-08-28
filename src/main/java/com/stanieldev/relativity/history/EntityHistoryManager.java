@@ -11,31 +11,41 @@ import static com.stanieldev.relativity.config.RelativityConfig.TEMP_MAX_TIME_RE
 
 public class EntityHistoryManager {
 
-    // Entity history storage
     private static final Map<UUID, EntityHistory> histories = new HashMap<>();
+
     public static void record(Entity entity, long tick) {
         EntityHistory history = histories.computeIfAbsent(entity.getUUID(), id -> new EntityHistory());
+
+        float yRot = entity.getYRot();
+        float xRot = entity.getXRot();
+        float yHeadRot = yRot;
+        float yBodyRot = yRot;
+        float limbPos = 0.0f;
+        float limbSpeed = 0.0f;
+
+        if (entity instanceof LivingEntity living) {
+            yHeadRot = living.getYHeadRot();
+            yBodyRot = living.yBodyRot;
+            limbPos = living.walkAnimation.position();
+            limbSpeed = living.walkAnimation.speed();
+        }
 
         CompoundTag tag = new CompoundTag();
         entity.saveWithoutId(tag);
 
-        tag.putFloat("RelativityYaw", entity.getYRot());
-        tag.putFloat("RelativityPitch", entity.getXRot());
-
-        if (entity instanceof LivingEntity living) {
-            tag.putFloat("RelativityHeadYaw", living.getYHeadRot());
-
-            if (living instanceof Mob mob) {
-                tag.putFloat("RelativityBodyYaw", mob.yBodyRot);
-            }
-        }
-
         history.add(new EntitySnapshot(
                 tick,
                 entity.position(),
+                yRot,
+                xRot,
+                yHeadRot,
+                yBodyRot,
+                limbPos,
+                limbSpeed,
                 tag
         ));
     }
+
     public static void prune(long currentTick) {
         histories.entrySet().removeIf(entry -> {
             EntityHistory history = entry.getValue();
