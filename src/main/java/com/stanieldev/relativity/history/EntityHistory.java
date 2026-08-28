@@ -108,4 +108,11 @@ public class EntityHistory {
 
         return RenderState.lerp(prev, next, alpha);
     }
+
+    public synchronized float getPlaybackSpeedFactor(double currentTick, Vec3 cameraPos) {
+        double tRetCurrent = solveRetardedTime(currentTick, cameraPos);
+        double tRetPrev = solveRetardedTime(currentTick - 0.5, cameraPos);
+        double dtRet = tRetCurrent - tRetPrev;
+        return (float) Math.max(0.0, dtRet * 2.0); // Normalize to per-tick factor
+    }
 }

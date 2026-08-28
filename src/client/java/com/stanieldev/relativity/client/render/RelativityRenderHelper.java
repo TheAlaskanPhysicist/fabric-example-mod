@@ -12,11 +12,10 @@ public class RelativityRenderHelper {
 
     public static class SavedEntityState {
         public Vec3 pos;
-        public double xo, yo, zo; // Added to prevent entity sub-tick spazzing
+        public double xo, yo, zo;
         public Vec3 delayedPos;
         public float yRot, xRot;
         public float yHeadRot, yBodyRot;
-        public float limbPos, limbSpeed;
     }
 
     public static SavedEntityState applyDelayedState(Entity entity, float partialTick) {
@@ -34,20 +33,21 @@ public class RelativityRenderHelper {
         RenderState state = history.getInterpolatedState(targetTick);
         if (state == null) return null;
 
-        // Save original real-time entity state
         SavedEntityState saved = new SavedEntityState();
         saved.pos = entity.position();
+        saved.xo = entity.xo;
+        saved.yo = entity.yo;
+        saved.zo = entity.zo;
+        saved.delayedPos = state.position();
         saved.yRot = entity.getYRot();
         saved.xRot = entity.getXRot();
 
         if (entity instanceof LivingEntity living) {
             saved.yHeadRot = living.getYHeadRot();
             saved.yBodyRot = living.yBodyRot;
-            saved.limbPos = living.walkAnimation.position();
-            saved.limbSpeed = living.walkAnimation.speed();
         }
 
-        // Apply historical snapshot values to live entity instance
+        // Apply historical head/body rotations
         entity.setYRot(state.yRot());
         entity.setXRot(state.xRot());
         entity.yRotO = state.yRot();
@@ -58,19 +58,16 @@ public class RelativityRenderHelper {
             living.yHeadRotO = state.yHeadRot();
             living.yBodyRot = state.yBodyRot();
             living.yBodyRotO = state.yBodyRot();
-            living.walkAnimation.setSpeed(state.limbSpeed());
-        }
 
-        saved.pos = entity.position();
-        saved.xo = entity.xo;
-        saved.yo = entity.yo;
-        saved.zo = entity.zo;
-        saved.delayedPos = state.position();
+            // Store historical limb animation parameters into context
+            RelativityModelContext.set(state.limbPos(), state.limbSpeed());
+        }
 
         return saved;
     }
 
     public static void restoreState(Entity entity, SavedEntityState saved) {
+        RelativityModelContext.clear();
         if (saved == null) return;
 
         entity.setYRot(saved.yRot);
@@ -79,7 +76,6 @@ public class RelativityRenderHelper {
         if (entity instanceof LivingEntity living) {
             living.yHeadRot = saved.yHeadRot;
             living.yBodyRot = saved.yBodyRot;
-            living.walkAnimation.setSpeed(saved.limbSpeed);
         }
     }
 }
