@@ -16,7 +16,7 @@ public class PositionTrajectoryRenderer {
 
     public static void render(PoseStack poseStack, MultiBufferSource bufferSource) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level == null || minecraft.gameRenderer == null) return;
+        if (minecraft.level == null) return;
 
         Vec3 camera = minecraft.gameRenderer.getMainCamera().getPosition();
         float partialTick = minecraft.getFrameTime();
@@ -40,7 +40,6 @@ public class PositionTrajectoryRenderer {
             }
 
             // Real position interpolated from latest history snapshots (Green Box)
-            // This avoids reading dirty entity.xo/yo/zo mutated during render passes
             EntitySnapshot latest = history.getLastSnapshot();
             if (latest != null) {
                 Vec3 realPos = latest.position().subtract(camera);
